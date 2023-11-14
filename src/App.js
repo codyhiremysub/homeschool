@@ -1,25 +1,35 @@
-import logo from './logo.svg';
-import './App.css';
+import React from "react";
+import { Route, Routes } from "react-router-dom";
+import { ErrorBoundary } from "react-error-boundary";
+// import PrivateRouteWrapper from './components/PrivateRouteWrapper';
+import LoginPage from "./pages/auth/LoginPage";
+import UpdatePasswordPage from "./pages/auth/UpdatePasswordPage";
+import LoginMFAPage from "./pages/auth/LoginMFAPage";
+import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
+import CheckResetCodePage from "./pages/auth/CheckResetCodePage";
+import NotFoundPage from "./pages/NotFoundPage";
+import PublicRouteWrapper from "./components/PublicRouteWrapper";
+import FallbackErrorPage from "./pages/FallbackErrorPage";
+import PrivateRouteWrapper from "./components/PrivateRouteWrapper";
+import Homepage from "./pages/Homepage";
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
-}
+const App = () => (
+  <ErrorBoundary FallbackComponent={FallbackErrorPage}>
+    <Routes>
+      <Route element={<PublicRouteWrapper />}>
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/login/:token" element={<LoginPage />} />
+        <Route path="/login-mfa" element={<LoginMFAPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/check-reset-code" element={<CheckResetCodePage />} />
+        <Route path="/update-password" element={<UpdatePasswordPage />} />
+      </Route>
+      <Route element={<PrivateRouteWrapper />}>
+        <Route index element={<Homepage />} />
+      </Route>
+      <Route path="*" element={<NotFoundPage />} />
+    </Routes>
+  </ErrorBoundary>
+);
 
 export default App;
