@@ -1,47 +1,42 @@
-/* eslint-disable arrow-body-style */
 import React, { useState } from "react";
-import { Field, Form, Formik } from "formik";
-import { useMutation } from "react-query";
-// import { useSelector } from "react-redux";
-import * as Yup from "yup";
+import { nanoid } from "nanoid";
 import Modal from "../Modal";
-import ModalTitle from "./ModalTitle";
-import InputField from "../input_fields/InputField";
-import { PrimaryFilledButton, SubmitButton } from "../Styled";
-import axios from "../../api/config";
-import DropdownField from "../input_fields/DropdownField";
+import { PrimaryFilledButton } from "../Styled";
 import stamp from "../../assets/dino1.png";
+import GoalCompletionModal from "./GoalCompletionModal";
+import GoalCreationModal from "./GoalCreationModal";
+import GoalReplacementModal from "./GoalReplacementModal";
 
-const Goal = ({ area, goal, refetch }) => {
-  const [isEditing, setIsEditing] = useState(false);
-  const [isSettingGoal, setIsSettingGoal] = useState(false);
-
-  const mutation = useMutation({
-    mutationFn: (newGoal) => {
-      return axios.post(`/goals/${area}`, newGoal);
-    },
-    onSuccess: async () => {
-      await refetch();
-    },
-  });
-
-  const updateMutation = useMutation({
-    mutationFn: (updatedGoal) => {
-      return axios.put(`/goals/${area}`, updatedGoal);
-    },
-    onSuccess: async () => {
-      await refetch();
-    },
-  });
+const Goal = ({ area, goal, refetch, actions, setOtherGoalArea }) => {
+  const [modal, setModal] = useState();
 
   return (
     <>
-      <div className="flex justify-between border border-gray-500 bg-neutral-300 p-2">
-        <button onClick={() => setIsEditing(true)} type="button">
-          <div>{goal?.action || `Set your ${area || "Other"} goal`}</div>
+      <div
+        className={`flex justify-between border border-gray-500 ${
+          goal?.action ? "bg-blue-300" : "bg-neutral-100"
+        } p-2`}
+      >
+        <button
+          onClick={() =>
+            goal?.action ? setModal("Completing") : setModal("Creating")
+          }
+          type="button"
+          className="text-left"
+        >
+          <div className="text-sm">{area || "Other"}</div>
+          {goal?.action ? (
+            <div className="text-2xl">{goal?.action}</div>
+          ) : (
+            <div className="text-neutral-400">
+              Set your {area || "Other"} goal
+            </div>
+          )}
+          <div>{goal?.research_question}</div>
           <div>
             {goal?.completions.map(() => (
               <img
+                key={nanoid()}
                 className="inline h-12 w-12"
                 src={stamp}
                 alt="sticker for completion"
@@ -49,95 +44,46 @@ const Goal = ({ area, goal, refetch }) => {
             ))}
           </div>
         </button>
-        <PrimaryFilledButton
-          onClick={() => {
-            setIsSettingGoal(true);
-            setIsEditing(true);
-          }}
-          type="button"
-        >
-          Replace
-        </PrimaryFilledButton>
+        {goal?.action && (
+          <PrimaryFilledButton
+            onClick={() => {
+              setModal("Replacing");
+            }}
+            type="button"
+          >
+            Replace
+          </PrimaryFilledButton>
+        )}
       </div>
-      <Modal show={isEditing} onClose={() => setIsEditing(false)}>
-        {!isSettingGoal ? (
-          <>
-            <ModalTitle title="Update Goal" />
-            <p>Verify you have completed the goal.</p>
-            <Formik
-              initialValues={{
-                completed: false,
-              }}
-              validationSchema={Yup.object().shape({
-                completed: Yup.string().required(),
-              })}
-              onSubmit={async () => {
-                updateMutation.mutate({ id: goal?._id });
-                setIsEditing(false);
-              }}
-            >
-              {({ values }) => (
-                <Form>
-                  <Field
-                    component={DropdownField}
-                    options={[
-                      { label: "Yes", value: true },
-                      { label: "No", value: false },
-                    ]}
-                    name="completion"
-                    label="Did you complete the goal for this week?"
-                  />
-
-                  <SubmitButton
-                    className="px-2"
-                    $proceedAllowed={values.completion}
-                  >
-                    Submit
-                  </SubmitButton>
-                </Form>
-              )}
-            </Formik>
-          </>
-        ) : (
-          <>
-            <ModalTitle title="Set Goal" />
-            <p>Set your {area} goal details.</p>
-            <Formik
-              initialValues={{
-                action: goal?.action,
-                area,
-              }}
-              validationSchema={Yup.object().shape({
-                action: Yup.string().required(),
-                area: Yup.string().required(),
-              })}
-              onSubmit={async (values) => {
-                mutation.mutate(values);
-                setIsEditing(false);
-                setIsSettingGoal(false);
-              }}
-            >
-              {({ values }) => (
-                <Form>
-                  <Field component={InputField} name="action" label="Action" />
-                  {!area && (
-                    <Field
-                      component={DropdownField}
-                      options={["testimony"]}
-                      name="area"
-                      label="area"
-                    />
-                  )}
-                  <SubmitButton
-                    className="px-2"
-                    $proceedAllowed={values.action}
-                  >
-                    Submit
-                  </SubmitButton>
-                </Form>
-              )}
-            </Formik>
-          </>
+      <Modal show={!!modal} onClose={() => setModal(false)}>
+        {/* Updating goal action, Creating goal, Marking goal complete */}
+        {modal === "Completing" && (
+          <GoalCompletionModal
+            goal={goal}
+            setModal={setModal}
+            refetch={refetch}
+            area={area}
+          />
+        )}
+        {modal === "Creating" && (
+          <GoalCreationModal
+            area={area}
+            setOtherGoalArea={setOtherGoalArea}
+            refetch={refetch}
+            goal={goal}
+            setModal={setModal}
+            actions={actions}
+          />
+        )}
+        {modal === "Replacing" && (
+          <GoalReplacementModal
+            area={area}
+            setOtherGoalArea={setOtherGoalArea}
+            refetch={refetch}
+            goal={goal}
+            setModal={setModal}
+            actions={actions}
+          />
         )}
       </Modal>
     </>

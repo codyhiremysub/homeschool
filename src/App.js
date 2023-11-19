@@ -12,20 +12,23 @@ import PublicRouteWrapper from "./components/PublicRouteWrapper";
 import FallbackErrorPage from "./pages/FallbackErrorPage";
 import PrivateRouteWrapper from "./components/PrivateRouteWrapper";
 import Homepage from "./pages/Homepage";
+import Layout from "./components/input_fields/Layout";
 
 const App = () => (
   <ErrorBoundary FallbackComponent={FallbackErrorPage}>
     <Routes>
-      <Route element={<PublicRouteWrapper />}>
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/login/:token" element={<LoginPage />} />
-        <Route path="/login-mfa" element={<LoginMFAPage />} />
-        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-        <Route path="/check-reset-code" element={<CheckResetCodePage />} />
-        <Route path="/update-password" element={<UpdatePasswordPage />} />
-      </Route>
-      <Route element={<PrivateRouteWrapper />}>
-        <Route index element={<Homepage />} />
+      <Route element={<Layout />}>
+        <Route element={<PublicRouteWrapper />}>
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/login/:token" element={<LoginPage />} />
+          <Route path="/login-mfa" element={<LoginMFAPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/check-reset-code" element={<CheckResetCodePage />} />
+          <Route path="/update-password" element={<UpdatePasswordPage />} />
+        </Route>
+        <Route element={<PrivateRouteWrapper />}>
+          <Route index element={<Homepage />} />
+        </Route>
       </Route>
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
